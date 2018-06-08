@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"></head>
+<body>
+<div id="app">
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">
+                   ToDoList
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-ms-6 col-ms-offset-3">
+                <div class="panel panel-warning">
+                    <div class="panel-heading ">
+                        <h3 class="text-danger">亲你有{{count}}件事情要完成</h3>
+                        <input type="text" class="form-control" v-model="title" @keyup.13="add">
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" v-for="(todo,index) in filterCount" @dblclick="remember(todo)">
+                                <span :class="{del:todo.isSelected}" v-show="cur!=todo">
+                                    <input type="checkbox" v-model="todo.isSelected"> {{todo.title}}
+                                </span>
+                                <input type="text" v-model="todo.title" v-show="cur==todo" @key.enter="cancel" @blur="cancel" v-focus-aa="cur==todo">
+                                <button class="pull-right btn btn-danger btn-xs"  @click='remove(todo)'>&bigotimes;</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="panel-footer">
+                        <ul class="nav nav-pills">
+                            <li role="presentation " :class="{active:hash==='all'}"><a href="#/all" >全部</a></li>
+                            <li role="presentation " :class="{active:hash==='finish'}"><a href="#/finish" >已完成</a></li>
+                            <li role="presentation " :class="{active:hash==='unfinish'}"><a href="#/unfinish" >未完成</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../node_modules/axios/dist/axios.js"></script>
+<script src="../node_modules/vue/dist/vue.js"></script>
+<script src="todu.js"></script>
+<script>
+    let vm = new Vue({
+        el:'#app',
+        // 专门用来发送 ajax 方
+        filters:{ // 自定义过滤器
+            toFixed(input,param1){
+                return 'Y'+input.toFixed(param1)
+            }
+
+        },
+        created(){ // 数据被初始化之后，this 指向vm 实例，钩子函数
+            this.getData();
+        },
+        methods:{
+            sum(){ // 求和函数
+                return this.products.reduce((prev,next)=>
+                {
+                    if(!next.isSelected) return prev;
+                    return  prev+next.productPrice*next.productCount
+                },0)
+
+            },
+            checkOne(){ // 根据下面得点击结果控制上面得
+                this.checkAll = this.products.every(item=>item.isSelected);
+            },
+            change(){
+                // 根据当前自己得状态设置其他得状态，实现全选和反选
+                this.products.forEach(item=>item.isSelected = this.checkAll)
+            },
+            remove(p){// p 代表得是当前一项
+                this.products = this.products.filter(item=>item!==p)
+            },
+            getData(){ // 初始化方法
+                // Promise 解决回调
+                axios.get('./card.json').then(res => {
+                    console.log(res.data);
+                    this.products = res.data;
+                    this.checkOne()
+                },err => {
+                    console.log(err)
+                })
+            }
+        },
+        data:{
+            products:[],
+            checkAll:false
+        }
+    })
+</script>
+</body>
+</html>
